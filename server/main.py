@@ -1,11 +1,12 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from pydantic import BaseModel
-import numpy as np
-from model_utils import load_model, predict_price
+from server.model_utils import predict_house_price
 
-# Define Pydantic model for input data
-class HouseData(BaseModel):
-    area: int
+app = FastAPI()
+
+# Define input schema
+class HouseFeatures(BaseModel):
+    area: float
     bedrooms: int
     bathrooms: int
     stories: int
@@ -19,30 +20,23 @@ class HouseData(BaseModel):
     furnishingstatus_semi_furnished: int
     furnishingstatus_unfurnished: int
 
-# Define Pydantic model for output response
-class PredictionResponse(BaseModel):
-    prediction: str  # String to return a formatted price
-
-# Initialize FastAPI app
-app = FastAPI()
-
-# Load the model once at startup
-model = load_model()
-
-# Prediction function
-# def predict_price(data: HouseData, model) -> float:
-    
-
-@app.get('/')
-def check_app():
-    return {"message": "Welcome to the house price prediction model!"}
-
-# Prediction endpoint
-@app.post("/predict", response_model=PredictionResponse)
-def predict(data: HouseData):
+@app.post("/predict")
+def predict_price(features: HouseFeatures):
+    """API endpoint to predict house price"""
     try:
-        prediction = predict_price(model,data)  # Get raw prediction value
-        formatted_prediction = "${:}".format(prediction)  # Format as currency
-        return PredictionResponse(prediction=formatted_prediction)  # Return formatted price
+        # Convert Pydantic model to list of feature values
+        feature_list = [
+            features.area, features.bedrooms, features.bathrooms,
+            features.stories, features.parking, features.mainroad_yes,
+            features.guestroom_yes, features.basement_yes, 
+            features.hotwaterheating_yes, features.airconditioning_yes,
+            features.prefarea_yes, features.furnishingstatus_semi_furnished,
+            features.furnishingstatus_unfurnished
+        ]
+        
+        predicted_price = predict_house_price(feature_list)
+        return {"predicted_price": predicted_price}
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error in prediction: {str(e)}")
+        return {"error": str(e)}
+
