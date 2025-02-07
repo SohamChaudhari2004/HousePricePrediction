@@ -2,8 +2,8 @@ import joblib
 import numpy as np
 
 # Load model & scaler once when the app starts
-model = joblib.load("server/models/house_price_model.pkl")
-scaler = joblib.load("server/models/house_price_scaler.pkl")
+model = joblib.load("models/house_price_model.pkl")
+scaler = joblib.load("models/house_price_scaler.pkl")
 
 def predict_house_price(features: list) -> float:
     """Predicts house price based on input features."""

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from server.model_utils import predict_house_price
+from model_utils import predict_house_price
 
 app = FastAPI()
 
